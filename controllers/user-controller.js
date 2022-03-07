@@ -5,8 +5,15 @@ const userController = {
     getAllUsers(req, res) {
         User.find({})
             .populate({
+                // bring in data from thought schema
                 path: 'thoughts',
+                // deselect version key
                 select: '-__v'
+            })
+            // bring in friends data
+            .populate({
+                path: 'friends',
+                select: ('-__v')
             })
             .select('-__v')
             // sort by descending order by the _id value
@@ -101,7 +108,13 @@ const userController = {
             { $pull: { friends: params.friendId } },
             { new: true }
         )
-            .then(dbUserData => res.json(dbUserData))
+            .then(dbUserData => {
+                if (!dbUserData) {
+                    res.status(404).json({ message: 'No user found with this ID!' });
+                    return;
+                  }
+                  res.json(dbUserData);
+                })
             .catch(err => res.json(err));
     }
 
